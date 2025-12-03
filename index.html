@@ -3,36 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uzay Macerası - Sesli Asistanlı</title>
+    <title>Uzay Macerası PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Comic Sans MS', cursive, sans-serif; }
-        .anim-pop { transition: transform 0.2s; }
-        .anim-pop:active { transform: scale(0.95); }
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        body { font-family: 'Fredoka', sans-serif; }
         .stars { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
+        .anim-pop { transition: transform 0.1s; cursor: pointer; }
+        .anim-pop:active { transform: scale(0.90); }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.2); }
+        
+        /* Roket Animasyonu */
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+        .floating { animation: float 3s ease-in-out infinite; }
     </style>
 </head>
-<body class="bg-gray-900 text-white h-screen overflow-hidden stars select-none">
+<body class="bg-gray-900 text-white h-screen overflow-hidden stars select-none relative">
 
-    <button onclick="toggleSound()" class="absolute top-4 right-4 z-50 bg-white/20 p-2 rounded-full">
+    <div class="absolute inset-0 z-0 opacity-50">
+        <div class="absolute top-10 left-10 text-yellow-100 text-xs">✨</div>
+        <div class="absolute top-40 right-20 text-yellow-100 text-sm">⭐</div>
+        <div class="absolute bottom-20 left-1/3 text-yellow-100">✨</div>
+    </div>
+
+    <button onclick="toggleSound()" class="absolute top-4 right-4 z-50 glass p-3 rounded-full hover:bg-white/20 transition">
         <i data-lucide="volume-2" id="soundIcon" class="w-8 h-8 text-white"></i>
     </button>
 
-    <div id="app" class="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+    <div id="app" class="relative z-10 w-full h-full flex flex-col items-center justify-center p-4 text-center">
         </div>
 
     <script>
-        // --- SESLİ ASİSTAN SİSTEMİ ---
+        // --- AYARLAR ---
         let sesAcik = true;
+        let playerName = "";
+        const gameState = { screen: 'INTRO', level: 1 };
         
+        // --- SESLİ ASİSTAN ---
         function konus(metin) {
             if (!sesAcik) return;
-            window.speechSynthesis.cancel(); // Önceki konuşmayı durdur
+            window.speechSynthesis.cancel();
             const asistan = new SpeechSynthesisUtterance(metin);
-            asistan.lang = 'tr-TR'; // Türkçe konuş
-            asistan.rate = 0.9; // Çocuklar için biraz yavaş
-            asistan.pitch = 1.1; // Biraz neşeli ton
+            asistan.lang = 'tr-TR';
+            asistan.rate = 0.9; 
             window.speechSynthesis.speak(asistan);
         }
 
@@ -42,103 +56,176 @@
             lucide.createIcons();
         }
 
-        // --- OYUN VERİLERİ ---
-        const gameState = {
-            screen: 'INTRO', // INTRO, SELECT, GAME, WIN
-            character: null,
-            level: 1
-        };
-
+        // --- SAYFA YÖNETİMİ ---
         const app = document.getElementById('app');
 
-        // --- EKRANLAR ---
         function render() {
             app.innerHTML = '';
             
+            // 1. GİRİŞ EKRANI
             if (gameState.screen === 'INTRO') {
                 app.innerHTML = `
-                    <h1 class="text-5xl md:text-7xl font-bold mb-8 text-yellow-400 animate-bounce">UZAY MACERASI</h1>
-                    <button onclick="startGame()" class="anim-pop bg-gradient-to-r from-blue-500 to-purple-600 text-white text-3xl py-6 px-12 rounded-3xl border-b-8 border-blue-800 shadow-xl hover:brightness-110">
-                        🚀 OYUNA BAŞLA
+                    <div class="floating mb-8 text-8xl">🚀</div>
+                    <h1 class="text-5xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">UZAY GEZGİNİ</h1>
+                    <p class="text-xl text-blue-200 mb-8">Hazır mısın Kaptan?</p>
+                    <button onclick="startGame()" class="anim-pop bg-yellow-500 text-black text-3xl py-4 px-12 rounded-full font-bold shadow-lg border-b-8 border-yellow-700 hover:brightness-110">
+                        BAŞLA ▶
                     </button>
-                    <p class="mt-8 text-xl text-blue-200">Sesli Asistan Özelliği Aktif</p>
                 `;
             } 
+            
+            // 2. KARAKTER SEÇİMİ
             else if (gameState.screen === 'SELECT') {
                 app.innerHTML = `
-                    <h2 class="text-4xl mb-8 text-purple-300">Karakterini Seç!</h2>
-                    <div class="flex gap-8">
-                        <div onclick="selectChar('girl')" class="cursor-pointer anim-pop bg-white/10 p-6 rounded-2xl hover:bg-white/20 border-4 border-transparent hover:border-pink-400 transition">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&gender=female" class="w-32 h-32 rounded-full bg-pink-200 mb-4">
-                            <div class="text-2xl">Ayşe</div>
+                    <h2 class="text-3xl mb-8 text-white">Karakterini Seç</h2>
+                    <div class="flex gap-6 justify-center">
+                        <div onclick="selectChar('Ayşe')" class="anim-pop glass p-6 rounded-3xl hover:bg-white/20">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Coco&backgroundColor=b6e3f4" class="w-32 h-32 rounded-full mb-4 shadow-lg">
+                            <div class="text-2xl font-bold">Ayşe</div>
                         </div>
-                        <div onclick="selectChar('boy')" class="cursor-pointer anim-pop bg-white/10 p-6 rounded-2xl hover:bg-white/20 border-4 border-transparent hover:border-blue-400 transition">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&gender=male" class="w-32 h-32 rounded-full bg-blue-200 mb-4">
-                            <div class="text-2xl">Ali</div>
+                        <div onclick="selectChar('Ali')" class="anim-pop glass p-6 rounded-3xl hover:bg-white/20">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=c0aede" class="w-32 h-32 rounded-full mb-4 shadow-lg">
+                            <div class="text-2xl font-bold">Ali</div>
                         </div>
                     </div>
                 `;
             }
-            else if (gameState.screen === 'GAME') {
+
+            // 3. SEVİYE 1: ŞEKİL BULMACA
+            else if (gameState.screen === 'LEVEL1') {
                 app.innerHTML = `
                     <div class="mb-8">
-                        <div class="text-6xl mb-4 animate-pulse">🔒 ŞİFRE</div>
-                        <p class="text-2xl text-yellow-200">Kırmızı Üçgeni Bul ve Tıkla!</p>
+                        <div class="inline-block bg-blue-600 px-4 py-1 rounded-full text-sm mb-4">Seviye 1</div>
+                        <h2 class="text-4xl font-bold text-yellow-300 mb-2">Kırmızı Üçgen Nerede?</h2>
+                        <p class="text-gray-300">Kapıyı açmak için ona tıkla!</p>
                     </div>
-                    <div class="grid grid-cols-3 gap-4 max-w-2xl">
-                        <button onclick="checkAnswer(false)" class="anim-pop h-32 rounded-2xl bg-blue-500 flex items-center justify-center text-6xl shadow-lg border-b-8 border-blue-700">🟦</button>
-                        <button onclick="checkAnswer(true)" class="anim-pop h-32 rounded-2xl bg-red-500 flex items-center justify-center text-6xl shadow-lg border-b-8 border-red-700">🔺</button>
-                        <button onclick="checkAnswer(false)" class="anim-pop h-32 rounded-2xl bg-green-500 flex items-center justify-center text-6xl shadow-lg border-b-8 border-green-700">🟢</button>
+                    <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+                        <button onclick="wrongAnswer()" class="anim-pop h-32 glass rounded-2xl flex items-center justify-center text-7xl hover:bg-white/10">🟦</button>
+                        <button onclick="nextLevel()" class="anim-pop h-32 glass rounded-2xl flex items-center justify-center text-7xl hover:bg-white/10 border-2 border-red-500/50">🔺</button>
+                        <button onclick="wrongAnswer()" class="anim-pop h-32 glass rounded-2xl flex items-center justify-center text-7xl hover:bg-white/10">🟢</button>
                     </div>
                 `;
             }
-            else if (gameState.screen === 'WIN') {
+
+            // 4. SEVİYE 2: ÖRÜNTÜ (BİLSEM SORUSU)
+            else if (gameState.screen === 'LEVEL2') {
                 app.innerHTML = `
-                    <div class="text-center animate-bounce">
-                        <h2 class="text-6xl font-bold text-green-400 mb-4">🎉 TEBRİKLER! 🎉</h2>
-                        <p class="text-3xl text-white mb-8">Kapıyı Açtın!</p>
-                        <div class="text-9xl mb-8">🚀</div>
-                        <button onclick="location.reload()" class="anim-pop bg-yellow-500 text-black text-2xl py-4 px-8 rounded-full font-bold">Tekrar Oyna</button>
+                    <div class="mb-8">
+                        <div class="inline-block bg-purple-600 px-4 py-1 rounded-full text-sm mb-4">Seviye 2</div>
+                        <h2 class="text-3xl font-bold text-yellow-300 mb-4">Sıradaki Ne Gelmeli?</h2>
+                        
+                        <div class="flex items-center justify-center gap-4 bg-white/10 p-4 rounded-xl mb-8">
+                            <span class="text-5xl">🌞</span>
+                            <span class="text-3xl text-gray-500">➜</span>
+                            <span class="text-5xl">🌙</span>
+                            <span class="text-3xl text-gray-500">➜</span>
+                            <span class="text-5xl">🌞</span>
+                            <span class="text-3xl text-gray-500">➜</span>
+                            <div class="w-16 h-16 border-4 border-dashed border-yellow-400 rounded-lg flex items-center justify-center text-4xl">?</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 justify-center">
+                        <button onclick="wrongAnswer()" class="anim-pop bg-white p-4 rounded-xl text-5xl shadow-lg border-b-4 border-gray-300">🌞</button>
+                        <button onclick="startColoring()" class="anim-pop bg-white p-4 rounded-xl text-5xl shadow-lg border-b-4 border-gray-300">🌙</button>
+                        <button onclick="wrongAnswer()" class="anim-pop bg-white p-4 rounded-xl text-5xl shadow-lg border-b-4 border-gray-300">⭐</button>
                     </div>
                 `;
-                createConfetti();
+            }
+
+            // 5. SEVİYE 3: BOYAMA (ÖDÜL)
+            else if (gameState.screen === 'COLORING') {
+                app.innerHTML = `
+                     <div class="mb-4">
+                        <h2 class="text-3xl text-green-400 font-bold">Harikasın! Ödül Zamanı 🎨</h2>
+                        <p>Roketin rengini değiştirmek için butonlara bas!</p>
+                    </div>
+                    
+                    <div class="relative w-64 h-64 mx-auto mb-6 transition-all duration-500" id="rocketBox">
+                        <svg viewBox="0 0 512 512" class="w-full h-full drop-shadow-2xl floating">
+                            <path id="rocketBody" d="M256 16c-60 0-100 80-100 200 0 80 40 160 100 160s100-80 100-160c0-120-40-200-100-200z" fill="#cbd5e1"/>
+                            <path d="M256 16c0 0-40 80-40 200h80C296 96 256 16 256 16z" fill="rgba(255,255,255,0.3)"/>
+                            <path id="rocketWindow" d="M256 160a32 32 0 1 0 0 64 32 32 0 1 0 0-64z" fill="#3b82f6"/>
+                            <path id="rocketFins" d="M156 320l-60 80v60h60l40-80z M356 320l60 80v60h-60l-40-80z" fill="#ef4444"/>
+                            <path d="M256 376c-30 0-50 20-50 50v40h100v-40c0-30-20-50-50-50z" fill="#64748b"/>
+                        </svg>
+                    </div>
+
+                    <div class="flex gap-3 justify-center mb-8">
+                        <button onclick="paintRocket('#ef4444')" class="w-12 h-12 rounded-full bg-red-500 border-2 border-white transform hover:scale-110 transition"></button>
+                        <button onclick="paintRocket('#3b82f6')" class="w-12 h-12 rounded-full bg-blue-500 border-2 border-white transform hover:scale-110 transition"></button>
+                        <button onclick="paintRocket('#22c55e')" class="w-12 h-12 rounded-full bg-green-500 border-2 border-white transform hover:scale-110 transition"></button>
+                        <button onclick="paintRocket('#a855f7')" class="w-12 h-12 rounded-full bg-purple-500 border-2 border-white transform hover:scale-110 transition"></button>
+                        <button onclick="paintRocket('#eab308')" class="w-12 h-12 rounded-full bg-yellow-500 border-2 border-white transform hover:scale-110 transition"></button>
+                    </div>
+
+                    <button onclick="finishGame()" class="bg-green-600 text-white py-3 px-8 rounded-full text-xl font-bold hover:bg-green-500 animate-bounce">
+                        GÖREVİ TAMAMLA ✓
+                    </button>
+                `;
+            }
+
+            // 6. BİTİŞ
+            else if (gameState.screen === 'WIN') {
+                app.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-9xl mb-4 animate-bounce">🏆</div>
+                        <h2 class="text-5xl font-bold text-yellow-400 mb-4">GÖREV BAŞARILI!</h2>
+                        <p class="text-2xl text-white mb-8">Tebrikler <span class="text-blue-400 font-bold">${playerName}</span>!</p>
+                        <p class="text-gray-400 mb-8">Uzay macerasını tamamladın.</p>
+                        <button onclick="location.reload()" class="glass py-3 px-8 rounded-full text-white hover:bg-white/20">
+                            Tekrar Oyna ↻
+                        </button>
+                    </div>
+                `;
+                konus(`Tebrikler ${playerName}! Görevi başarıyla tamamladın.`);
             }
             lucide.createIcons();
         }
 
         // --- OYUN MANTIĞI ---
         function startGame() {
-            konus("Merhaba küçük astronot! Hadi önce karakterini seçelim.");
+            konus("Uzay gemisine hoş geldin! Hadi önce karakterini seç.");
             gameState.screen = 'SELECT';
             render();
         }
 
-        function selectChar(type) {
-            gameState.character = type;
-            let name = type === 'girl' ? 'Ayşe' : 'Ali';
-            konus("Harika seçim! Şimdi kapıyı açmak için doğru şifreyi bulman lazım. Kırmızı üçgeni bul.");
-            gameState.screen = 'GAME';
+        function selectChar(name) {
+            playerName = name;
+            konus(`Merhaba ${name}. İlk görevin: Kırmızı üçgeni bulmak.`);
+            gameState.screen = 'LEVEL1';
             render();
         }
 
-        function checkAnswer(isCorrect) {
-            if (isCorrect) {
-                konus("Aferin sana! Doğru bildin ve kapı açıldı. Roket kalkıyor!");
-                gameState.screen = 'WIN';
-                render();
-            } else {
-                konus("Dikkatli bak. Kırmızı renkli üçgeni bulmalısın.");
-                // Titreşim efekti eklenebilir
-                document.body.classList.add('bg-red-900');
-                setTimeout(() => document.body.classList.remove('bg-red-900'), 200);
-            }
+        function wrongAnswer() {
+            konus("Hımmm, tekrar dene bakalım. Bu doğru değil.");
+            // Ekranı salla
+            app.classList.add('animate-pulse');
+            setTimeout(() => app.classList.remove('animate-pulse'), 500);
         }
 
-        function createConfetti() {
-            // Basit konfeti efekti CSS ile yapılabilir veya kütüphane eklenebilir, şimdilik emoji ile kutlama
+        function nextLevel() {
+            konus("Süpersin! Doğru cevap. Şimdi ikinci soru: Güneş, Ay, Güneş... Sırada ne gelmeli?");
+            gameState.screen = 'LEVEL2';
+            render();
         }
 
-        // Başlangıç
+        function startColoring() {
+            konus("Harika! Örüntüyü tamamladın. Şimdi ödül olarak roketini istediğin renge boya.");
+            gameState.screen = 'COLORING';
+            render();
+        }
+
+        function paintRocket(color) {
+            document.getElementById('rocketBody').setAttribute('fill', color);
+            // Yan efekt sesi olabilir
+        }
+
+        function finishGame() {
+            gameState.screen = 'WIN';
+            render();
+        }
+
+        // Başlat
         render();
         lucide.createIcons();
     </script>
